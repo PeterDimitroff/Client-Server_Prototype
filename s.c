@@ -313,6 +313,9 @@ int menu(int choice, int clientSock)
 			return sendList(pHead, clientSock);
 			break;
 		case 3:
+			if(pHead == NULL)
+				return sendText(clientSock, "There is no list.\n");
+				
 			if((list = sortList(pHead)) == NULL)
 				return sendError(clientSock);
 			else
@@ -371,11 +374,11 @@ int menu(int choice, int clientSock)
 		//Search:
 		case 12:
 			return searchTree(pRootBin, clientSock);
-			break;
+			break;/////////////////////////////////////////////////
 		case 13:
 			return searchTree(pRootAVL, clientSock);
 			break;
-		case 14:
+		case 14:///////////////////////////////////////////////////////////////
 			return searchList(pHead, clientSock);
 			break;
 		//exit
@@ -412,6 +415,7 @@ int searchTree(node *pRoot, int clientSock)
 	{
 		res = sendText(clientSock, found);
 		free(found);
+		found = NULL;
 		return res;
 	}
 }
@@ -424,7 +428,7 @@ char *findTreeStr(node *pRoot, int clientSock)
 	node *result = NULL;
 	
 	sVal = getSearchedValue(clientSock);
-	if(pRoot = NULL)
+	if(pRoot == NULL)
 	{
 		if(( found = (char*) malloc(20) ) == NULL)
 			return NULL;
@@ -453,6 +457,7 @@ char *findTreeStr(node *pRoot, int clientSock)
 		}
 		strcat(found, line);
 		free(line);
+		line = NULL;
 		found[106] = '\0';
 		return found;
 	}
@@ -481,7 +486,7 @@ char *findListStr(dat *pHead, int clientSock)
 	dat *result = NULL;
 	
 	sVal = getSearchedValue(clientSock);
-	if(pHead = NULL)
+	if(pHead == NULL)
 	{
 		if(( found = (char*) malloc(20) ) == NULL)
 			return NULL;
@@ -712,7 +717,7 @@ char *getList(dat *listHead)
 		if(( strList = (char*) malloc(20) ) == NULL)
 			return NULL;
 		memset(strList, '\0', 19);
-		strcat(strList, "There is no list.\n");
+		strcat(strList, "There is no list.\n\0");
 		return strList;
 	}
 	
@@ -1171,7 +1176,7 @@ int main()
 	int clientLen = 0;
 	int pid = 0;
 	struct sockaddr_in clientAddr;
-	
+
 	listenSock = getListenSock();
 	listen(listenSock,BACKLOG);
    	

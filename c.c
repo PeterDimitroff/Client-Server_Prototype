@@ -45,23 +45,6 @@ long getRequest()
 	}
 }
 
-long getPackLen(int servSock)
-{
-	long len = 0;
-	int bytesRead = 0;
-	int n = 0;
-	while(bytesRead < 4)
-	{
-		n = read(servSock, ((char*) &len) + bytesRead, 4 - bytesRead);
-		if(n < 0)
-			return n;
-		bytesRead += n;
-	}
-	
-	len = ntohl(len);
-	return len;
-}
-
 char *getResponse(int servSock)
 {
 	char *response = NULL;
@@ -72,9 +55,9 @@ char *getResponse(int servSock)
 	if(len < 0)
 		return NULL;
 	bytesLeft = len;
-	if( (response = (char*) malloc(len)) == NULL)
+	if( (response = (char*) malloc(len+1)) == NULL)
 		return NULL;
-	memset(response, '\0', len);
+	memset(response, '\0', len+1);
 	while(bytesDone < len)
 	{
 		n = read(servSock, response+bytesDone, bytesLeft);
@@ -91,10 +74,8 @@ int clientLoop(int servSock)
 {
 	char *response = NULL;
 	long choice = 0;
-	int rv;
 	
-	rv = sendRequest(servSock);
-	if(rv < 0)
+	if(sendRequest(servSock) < 0)
 	{
 		perror("Sending error");
 		return 0;
@@ -109,35 +90,56 @@ int clientLoop(int servSock)
 	if(!strcmp(response, ENDWORD))
 	{
 		free(response);
+		response = NULL;
 		return 0;
 	}
 	printf("%s\n", response);
 	free(response);
+	response = NULL;
 	
-	
-	return rv;
+	return 1;
 }
 
 void consolePause()
 {
 	//stdinFlush();
 	printf("Enter anything to continue\n");
-	//stdinFlush();
+	stdinFlush();
 	
-	getc(stdin);
+	//getc(stdin);
 }
 
 void stdinFlush()
 {
-	int c;
+	char c;
 	do
 	{
 		c = getchar();
 	}
 	while(c != '\n' && c != EOF);
+	
 }
 
 /********************************** NETWORK *************************/
+
+
+
+long getPackLen(int servSock)
+{
+	long len = 0;
+	int bytesRead = 0;
+	int n = 0;
+	while(bytesRead < 4)
+	{
+		n = read(servSock, ((char*) &len) + bytesRead, 4 - bytesRead);
+		if(n < 0)
+			return n;
+		bytesRead += n;
+	}
+	
+	len = ntohl(len);
+	return len;
+}
 
 int sendRequest(int servSock)
 {
@@ -241,6 +243,7 @@ int main(int argc, char *argv[])
 		
 	}
 	free(options);
+	options = NULL;
 	close(servSock);
 	return 0;
 }
